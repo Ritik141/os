@@ -35,15 +35,9 @@ int main()
 
     for(int i=0;i<n;i++)
     {
-        printf("\nEnter Process %d Arrival Time: ",i);
-        scanf("%d",&ps[i].at);
+        printf("\nEnter Process %d Arrival Time and burst time : ",i);
+        scanf("%d %d",&ps[i].at ,&ps[i].bt);
         ps[i].pid = i ;
-    }
-    
-    for(int i=0;i<n;i++)
-    {
-        printf("\nEnter Process %d Burst Time: ",i);
-        scanf("%d",&ps[i].bt);
     }
     
     while(completed!=n)
