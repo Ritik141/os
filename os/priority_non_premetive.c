@@ -1,131 +1,127 @@
 #include<stdio.h>
+#include<stdlib.h>
 #include<stdbool.h>
 #include<limits.h>
 
-struct process_struct
+struct process
 {
-  
-  int at;
-  int bt;
-  int priority;
-  int ct,wt,tat,rt,start_time;
-}ps[100];
-
-int findmax(int a, int b)
-{
-    return a>b?a:b;
-}
-
-int findmin(int a, int b)
-{
-    return a<b?a:b;
-}
+    int pid;
+    int priority;
+    int at, bt , ct;
+    int tat , wt, rt;
+    int start_time ,  bt_remaining;
+};
 
 int main()
 {
-    
     int n;
-    bool is_completed[100]={false},is_first_process=true;
-    int current_time = 0;
-    int completed = 0;
-    int total_idle_time=0,prev=0,length_cycle;
-    float cpu_utilization;
-    int max_completion_time,min_arrival_time;
-    //printf("Enter total number of processes");
-    scanf("%d",&n);    
-    float sum_tat=0,sum_wt=0,sum_rt=0;
-
-    int i;
+     printf("Enter the no of process:");
+     scanf("%d", &n);
     
-    //printf("\nEnter Process Number\n");
-    // for(i=0;i<n;i++)
-    // {
-    //   scanf("%f",&ps[i].process_num);
-    // }
-    //printf("\nEnter Process Arrival Time\n");
-    for(i=0;i<n;i++)
+    struct process  p[n];
+
+    printf("Enter the pid:");
+    for(int i=0;i<n;i++)
     {
-      scanf("%d",&ps[i].at);
+          scanf("%d", &p[i].pid);
     }
-    //printf("\nEnter Process Burst Time\n");
-    for(i=0;i<n;i++)
-      scanf("%d",&ps[i].bt);
-    //printf("\nEnter Priority\n");
-    for(i=0;i<n;i++)
-      scanf("%d",&ps[i].priority);
-   
-    while(completed!=n)
+    
+    printf("Enter the arrival time:");
+    for(int i=0;i<n;i++)
     {
-        //find process with min. burst time in ready queue at current time
-        int max_index = -1;
-        int maximum = -1;
-        for(int i = 0; i < n; i++) {
-            if(ps[i].at <= current_time && is_completed[i] == 0) {
-                if(ps[i].priority > maximum) {
-                    maximum = ps[i].priority;
-                    max_index = i;
+          scanf("%d", &p[i].at);
+    }
+    
+    printf("Enter the burst time:");
+    for(int i=0;i<n;i++)
+    {
+          scanf("%d", &p[i].bt);
+          p[i].bt_remaining=p[i].bt;
+    }
+
+    printf("Enter the priority:");
+    for(int i=0;i<n;i++)
+    {
+          scanf("%d", &p[i].priority);
+    }
+
+    int completed=0;
+    int current_time=0;
+    bool is_completed[100]={false};
+    
+    float sum_tat , sum_wt , sum_rt ,avg_tat , avg_wt , avg_rt;
+
+    while(completed !=n)
+    {
+        int index= -1;
+        int maximum = INT_MIN;
+
+        for(int i=0;i<n;i++)
+        {
+            if(p[i].at<= current_time && is_completed[i]==false)
+            {
+                if(p[i].priority > maximum)
+                {
+                     maximum = p[i].priority;
+                     index=i;
                 }
-                if(ps[i].priority== maximum) {
-                    if(ps[i].at < ps[max_index].at) {
-                        maximum= ps[i].priority;
-                        max_index = i;
-                    }
+
+                if(p[i].priority == maximum)
+                {
+                      if(p[i].at < p[index].at)
+                      {
+                         maximum= p[i].priority;
+                         index=i;
+                      }
                 }
             }
         }
 
+        if(index ==-1)
+        {
+            current_time++;
+        }
+
+        else
+        {
+            if(p[index].bt_remaining==p[index].bt)
+            {
+                p[index].start_time=current_time;
+            }
+             p[index].bt_remaining -=1;
+             current_time ++;
+
+             if(p[index].bt_remaining == 0)
+             {
+                p[index].ct=current_time;
+                p[index].tat = p[index].ct- p[index].at;
+                p[index].wt = p[index].tat - p[index].bt;
+                p[index].rt = p[index].start_time - p[index].at;
+
+                sum_tat +=p[index].tat;
+                sum_wt +=p[index].wt;
+                sum_rt +=p[index].rt;
+
+                completed++;
+                is_completed[index]=true;
+             }
+
+        }
+    }
     
-    if(max_index==-1)
-    {
-        current_time++;
-    }
-    else
-    {
-       ps[max_index].start_time = current_time;
-       ps[max_index].ct = ps[max_index].start_time + ps[max_index].bt;
-       ps[max_index].tat = ps[max_index].ct - ps[max_index].at;
-       ps[max_index].wt= ps[max_index].tat - ps[max_index].bt;
-       ps[max_index].rt = ps[max_index].start_time - ps[max_index].at;
-       total_idle_time += (is_first_process==true) ? 0 : (ps[max_index].start_time -  prev);
-     
-       sum_tat +=ps[max_index].tat;
-       sum_wt += ps[max_index].wt;
-       sum_rt += ps[max_index].rt;
-       completed++;
-       is_completed[max_index]=true;
-       current_time = ps[max_index].ct;
-       prev= current_time;
-       is_first_process = false; 
-      
-           
-    }
+    avg_tat=sum_tat/n;
+    avg_rt=sum_rt/n;
+    avg_wt=sum_wt/n;
+  
+  printf(" Prio Pid AT BT CT TAT WT RT\n");
+  for(int i=0;i<n;i++)
+  {
+    printf("%d  %d  %d  %d  %d  %d  %d  %d\n",p[i].priority,p[i].pid,p[i].at,p[i].bt,p[i].ct,p[i].tat,p[i].wt,p[i].rt);
   }
-  //Calculate Length of Process completion cycle
-    max_completion_time = INT_MIN;
-    min_arrival_time = INT_MAX;
-    for(int i=0;i<n;i++)
-    {
-        max_completion_time = findmax(max_completion_time,ps[i].ct);
-        min_arrival_time = findmin(min_arrival_time,ps[i].at);
-    }
-    length_cycle = max_completion_time - min_arrival_time;
-    cpu_utilization = (float)(length_cycle - total_idle_time)/ length_cycle;
-    
-    //Start times
-    for(int i=0;i<n;i++)
-    {
-        printf("%d ",ps[i].start_time);
-    }
-    printf("\n");
-    //completion times
-    for(int i=0;i<n;i++)
-    {
-        printf("%d ",ps[i].ct);
-    }
-    printf("\n%.2f",sum_tat/n);
-    printf("\n%.2f",sum_wt/n);
-    printf("\n%.2f",sum_rt/n);
-    printf("\n%.2f",n/(float)length_cycle);    
-    printf("\n%.2f",cpu_utilization*100);
-    return 0;
+ printf("Average Turn Around Time: %f\n",avg_tat); 
+ printf("Average Waiting Time: %f\n",avg_wt); 
+ printf("Average Response Time: %f\n",avg_rt); 
+
+return 0;
+
 }
